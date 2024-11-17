@@ -1,12 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Portfolio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Calculator Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .calculator {
+            margin: 20px;
+        }
+        input {
+            margin: 5px;
+        }
+        #history {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-  <p>Hello, World!</p>
+
+    <h1>Multi Calculator Page</h1>
+
+    <!-- 미국환율기준 원화표기 -->
+    <div class="calculator">
+        <h2>미국환율기준 원화표기</h2>
+        <label for="usdInput">USD:</label>
+        <input type="number" id="usdInput" placeholder="USD">
+        <button onclick="convertCurrency()">Convert</button>
+        <p id="currencyResult">KRW: </p>
+    </div>
+
+    <!-- 퍼센트 계산기 -->
+    <div class="calculator">
+        <h2>퍼센트 계산기</h2>
+        <label for="percentageInput">값 입력:</label>
+        <input type="number" id="percentageInput" placeholder="값">
+        <label for="percentageRate">퍼센트:</label>
+        <input type="number" id="percentageRate" placeholder="퍼센트">
+        <button onclick="calculatePercentage()">계산</button>
+        <p id="percentageResult">결과: </p>
+    </div>
+
+    <!-- 수익률 계산기 -->
+    <div class="calculator">
+        <h2>수익률 계산기</h2>
+        <label for="initialInvestment">초기 투자 금액:</label>
+        <input type="number" id="initialInvestment" placeholder="초기 투자 금액">
+        <label for="finalValue">최종 가치:</label>
+        <input type="number" id="finalValue" placeholder="최종 가치">
+        <button onclick="calculateROI()">계산</button>
+        <p id="roiResult">수익률: </p>
+    </div>
+
+    <!-- 일반 계산기 -->
+    <div class="calculator">
+        <h2>일반 계산기</h2>
+        <input type="text" id="calculatorInput" placeholder="계산식 입력">
+        <button onclick="calculate()">계산</button>
+        <p id="calculatorResult">결과: </p>
+    </div>
+
+    <!-- 히스토리 -->
+    <div id="history">
+        <h2>계산 히스토리</h2>
+        <ul id="historyList"></ul>
+    </div>
+
+    <script>
+        // 환율 API URL (예: 환율 API 제공자 사용)
+        const exchangeRateAPI = 'https://api.exchangerate-api.com/v4/latest/USD';
+
+        async function convertCurrency() {
+            const usd = parseFloat(document.getElementById('usdInput').value);
+            const response = await fetch(exchangeRateAPI);
+            const data = await response.json();
+            const krwRate = data.rates.KRW;
+            const result = usd * krwRate;
+            document.getElementById('currencyResult').innerText = `KRW: ${result}`;
+            saveHistory(`USD ${usd} -> KRW ${result}`);
+        }
+
+        function calculatePercentage() {
+            const value = parseFloat(document.getElementById('percentageInput').value);
+            const rate = parseFloat(document.getElementById('percentageRate').value);
+            const result = value * (rate / 100);
+            document.getElementById('percentageResult').innerText = `결과: ${result}`;
+            saveHistory(`Value ${value} at ${rate}% = ${result}`);
+        }
+
+        function calculateROI() {
+            const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+            const finalValue = parseFloat(document.getElementById('finalValue').value);
+            const result = ((finalValue - initialInvestment) / initialInvestment) * 100;
+            document.getElementById('roiResult').innerText = `수익률: ${result}%`;
+            saveHistory(`Initial ${initialInvestment}, Final ${finalValue} -> ROI ${result}%`);
+        }
+
+        function calculate() {
+            try {
+                const input = document.getElementById('calculatorInput').value;
+                const result = eval(input);
+                document.getElementById('calculatorResult').innerText = `결과: ${result}`;
+                saveHistory(`Calculation: ${input} = ${result}`);
+            } catch (error) {
+                document.getElementById('calculatorResult').innerText = '잘못된 계산식입니다.';
+            }
+        }
+
+        function saveHistory(entry) {
+            const historyList = document.getElementById('historyList');
+            const li = document.createElement('li');
+            li.innerText = entry;
+            historyList.appendChild(li);
+            // Save to localStorage
+            let history = JSON.parse(localStorage.getItem('history')) || [];
+            history.push(entry);
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('history')) || [];
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            history.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerText = entry;
+                historyList.appendChild(li);
+            });
+        }
+
+        // Load history on page load
+        window.onload = loadHistory;
+    </script>
+
 </body>
 </html>
