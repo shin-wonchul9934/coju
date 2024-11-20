@@ -1,40 +1,60 @@
-function calculate() {
-    // Retrieve inputs
-    const entryPrice = parseFloat(document.getElementById("entryPrice").value);
-    const positionType = document.getElementById("positionType").value;
-  
-    // Validate entry price
-    if (!entryPrice || entryPrice <= 0) {
-      alert("Please enter a valid entry price.");
-      return;
+function initializeCalculator() {
+    const buttons = [
+        "7", "8", "9", "/",
+        "4", "5", "6", "*",
+        "1", "2", "3", "-",
+        "0", ".", "=", "+",
+        "C", "<"
+    ];
+
+    const display = document.getElementById("calc-display");
+    const buttonContainer = document.getElementById("calc-buttons");
+
+    // Ensure display and buttonContainer exist
+    if (!display || !buttonContainer) {
+        console.error("Missing calculator display or button container in HTML.");
+        return;
     }
-  
-    // Constants
-    const riskPerTrade = 25; // Fixed risk amount in USDT
-    const leverage = 100; // Leverage percentage
-    const stopLossPercent = 0.01; // 1% SL distance
-    const takeProfitPercent = stopLossPercent * 2; // 2% TP distance for 1:2 R:R ratio
-  
-    // Variables for calculated results
-    let stopLoss, takeProfit;
-  
-    // Calculate SL and TP based on position type
-    if (positionType === "long") {
-      stopLoss = entryPrice - (entryPrice * stopLossPercent);
-      takeProfit = entryPrice + (entryPrice * takeProfitPercent);
-    } else if (positionType === "short") {
-      stopLoss = entryPrice + (entryPrice * stopLossPercent);
-      takeProfit = entryPrice - (entryPrice * takeProfitPercent);
+
+    // Create buttons
+    buttons.forEach((btn) => {
+        const button = document.createElement("button");
+        button.textContent = btn;
+        button.addEventListener("click", () => handleCalcInput(btn));
+        buttonContainer.appendChild(button);
+    });
+
+    // Handle keyboard input
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            calculateResult();
+        } else if (!isNaN(event.key) || "+-*/.".includes(event.key)) {
+            display.value += event.key;
+        } else {
+            event.preventDefault(); // Prevent invalid key actions
+        }
+    });
+
+    // Handle button input
+    function handleCalcInput(input) {
+        if (input === "C") {
+            display.value = ""; // Clear input
+        } else if (input === "<") {
+            display.value = display.value.slice(0, -1); // Remove last character
+        } else if (input === "=") {
+            calculateResult(); // Calculate result
+        } else {
+            display.value += input; // Append input
+        }
     }
-  
-    // Update the UI with results
-    document.getElementById("result").innerHTML = `
-      <h2>Calculation Results</h2>
-      <p><strong>Entry Price:</strong> $${entryPrice.toFixed(2)}</p>
-      <p><strong>Stop-Loss (SL):</strong> $${stopLoss.toFixed(2)}</p>
-      <p><strong>Take-Profit (TP):</strong> $${takeProfit.toFixed(2)}</p>
-      <p><strong>Leverage:</strong> 100×</p>
-      <p><strong>Risk per Trade:</strong> $25</p>
-    `;
-  }
-  
+
+    // Calculate the result
+    function calculateResult() {
+        try {
+            const result = eval(display.value); // Unsafe, but used here for simplicity
+            display.value = result || "0"; // Default to 0 if result is falsy
+        } catch (error) {
+            display.value = "Error"; // Handle errors
+        }
+    }
+}
